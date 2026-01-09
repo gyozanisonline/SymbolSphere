@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Planetoid - CSS3D Globe</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="scene">
+        <div id="sphere"></div>
+    </div>
+
+
+    <div id="controls-panel">
+        <div class="control-group">
+            <label for="spacing-slider">Spacing (Radius)</label>
+            <input type="range" id="spacing-slider" min="150" max="500" value="250" step="10">
+            <span id="spacing-value">250</span>
+        </div>
+        <div class="control-group">
+            <label for="size-slider">Symbol Size</label>
+            <input type="range" id="size-slider" min="50" max="200" value="140" step="10">
+            <span id="size-value">140</span>
+        </div>
+        <div class="control-group">
+            <label for="bg-color">Background</label>
+            <input type="color" id="bg-color" value="#ffffff">
+        </div>
+        <div class="hint">Press U to hide/show</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,146 @@
+:root {
+    --bg-color: #ffffff;
+    --dot-color: #000000;
+    --perspective: 1000px;
+    --sphere-size: 600px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    font-family: 'Inter', sans-serif;
+    color: #000000;
+    user-select: none;
+    /* Prevent text selection while dragging */
+}
+
+#scene {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: var(--perspective);
+    position: relative;
+    z-index: 1;
+}
+
+#sphere {
+    width: 0;
+    height: 0;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.item {
+    position: absolute;
+    width: 140px;
+    /* Increased size for visibility */
+    height: 140px;
+    /* background-color: var(--dot-color); REMOVED */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    top: -70px;
+    /* Center the element (half size) */
+    left: -70px;
+    /* Center the element */
+    will-change: transform, opacity, filter;
+    /* transition: box-shadow 0.2s; REMOVED */
+    opacity: 0.9;
+}
+
+.item::after {
+    /* Removed the glow effect for the symbols version as it might muddy the drawings */
+    content: none;
+}
+
+
+#controls {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+h1 {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+#controls-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: auto;
+}
+
+#controls-panel.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group:last-of-type {
+    margin-bottom: 10px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.control-group input[type="range"] {
+    width: 200px;
+    margin-right: 10px;
+}
+
+.control-group input[type="color"] {
+    width: 60px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.control-group span {
+    font-size: 12px;
+    color: #666;
+    min-width: 30px;
+    display: inline-block;
+}
+
+.hint {
+    font-size: 11px;
+    color: #999;
+    margin-top: 5px;
+    font-style: italic;
+}

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbol Sphere Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --dot-color: #000000;
+            --perspective: 1000px;
+            --sphere-size: 600px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: #000000;
+            user-select: none;
+        }
+
+        #scene {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: var(--perspective);
+            position: relative;
+            z-index: 1;
+        }
+
+        #sphere {
+            width: 0;
+            height: 0;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .item {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            top: -70px;
+            left: -70px;
+            will-change: transform, opacity, filter;
+            opacity: 0.9;
+        }
+
+        .item::after {
+            content: none;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        #controls-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: auto;
+        }
+
+        #controls-panel.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group:last-of-type {
+            margin-bottom: 10px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .control-group input[type="range"] {
+            width: 200px;
+            margin-right: 10px;
+        }
+
+        .control-group input[type="color"] {
+            width: 60px;
+            height: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .control-group span {
+            font-size: 12px;
+            color: #666;
+            min-width: 30px;
+            display: inline-block;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="scene">
+        <div id="sphere"></div>
+    </div>
+
+    <div id="controls-panel">
+        <div class="control-group">
+            <label for="spacing-slider">Spacing (Radius)</label>
+            <input type="range" id="spacing-slider" min="150" max="500" value="250" step="10">
+            <span id="spacing-value">250</span>
+        </div>
+        <div class="control-group">
+            <label for="size-slider">Symbol Size</label>
+            <input type="range" id="size-slider" min="50" max="200" value="140" step="10">
+            <span id="size-value">140</span>
+        </div>
+        <div class="control-group">
+            <label for="bg-color">Background</label>
+            <input type="color" id="bg-color" value="#ffffff">
+        </div>
+        <div class="hint">Press U to hide/show</div>
+    </div>
+
+    <script>
+        const config = {
+            count: 200,
+            radius: 250,
+            autoRotateSpeed: 0.002,
+            dragSensitivity: 0.005,
+            inertiaDecay: 0.95
+        };
+
+        // Image bank - using SVG files from assets folder attached content
+        const imageBank = [
+            'assets/Artboard%203.svg',
+            'assets/Artboard%203%20copy.svg',
+            'assets/Artboard%203%20copy%202.svg',
+            'assets/Artboard%203%20copy%203.svg',
+            'assets/Artboard%203%20copy%204.svg',
+            'assets/Artboard%203%20copy%205.svg',
+            'assets/Artboard%203%20copy%206.svg',
+            'assets/Artboard%203%20copy%207.svg',
+            'assets/Artboard%203%20copy%208.svg',
+            'assets/Artboard%203%20copy%209.svg',
+            'assets/Artboard%203%20copy%2010.svg',
+            'assets/Artboard%203%20copy%2011.svg',
+            'assets/Artboard%203%20copy%2012.svg',
+            'assets/Artboard%203%20copy%2013.svg',
+            'assets/Artboard%203%20copy%2014.svg',
+            'assets/Artboard%203%20copy%2015.svg',
+            'assets/Artboard%203%20copy%2016.svg',
+            'assets/Artboard%203%20copy%2017.svg',
+            'assets/Artboard%203%20copy%2018.svg',
+            'assets/Artboard%203%20copy%2019.svg',
+            'assets/Artboard%203%20copy%2020.svg',
+            'assets/Artboard%203%20copy%2021.svg',
+            'assets/Artboard%203%20copy%2022.svg',
+            'assets/Artboard%203%20copy%2023.svg'
+        ];
+
+        const state = {
+            rotation: { x: 0, y: 0 },
+            velocity: { x: 0, y: 0 },
+            isDragging: false,
+            lastMouse: { x: 0, y: 0 },
+            items: []
+        };
+
+        const dom = {
+            container: document.getElementById('sphere'),
+            items: []
+        };
+
+        function getFibonacciSpherePoints(count, radius) {
+            const points = [];
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+
+            for (let i = 0; i < count; i++) {
+                const y = 1 - (i / (count - 1)) * 2;
+                const radiusAtY = Math.sqrt(1 - y * y);
+                const theta = (2 * Math.PI * i) / goldenRatio;
+                const x = Math.cos(theta) * radiusAtY;
+                const z = Math.sin(theta) * radiusAtY;
+
+                points.push({
+                    x: x * radius,
+                    y: y * radius,
+                    z: z * radius
+                });
+            }
+            return points;
+        }
+
+        function rotatePoint(p, rx, ry) {
+            let { x, y, z } = p;
+            const cosX = Math.cos(rx);
+            const sinX = Math.sin(rx);
+            const y1 = y * cosX - z * sinX;
+            const z1 = y * sinX + z * cosX;
+            y = y1;
+            z = z1;
+
+            const cosY = Math.cos(ry);
+            const sinY = Math.sin(ry);
+            const x2 = x * cosY + z * sinY;
+            const z2 = -x * sinY + z * cosY;
+            x = x2;
+            z = z2;
+
+            return { x, y, z };
+        }
+
+        function init() {
+            const points = getFibonacciSpherePoints(config.count, config.radius);
+
+            // Average spacing calculation to determine neighbor threshold
+            const surfaceArea = 4 * Math.PI * config.radius * config.radius;
+            const areaPerPoint = surfaceArea / config.count;
+            const neighborThreshold = Math.sqrt(areaPerPoint) * 1.5;
+            const neighborThresholdSq = neighborThreshold * neighborThreshold;
+
+            points.forEach((p, i) => {
+                const el = document.createElement('div');
+                el.className = 'item';
+
+                // Find neighbors among already created items
+                const neighborImageIndices = new Set();
+                state.items.forEach(existingItem => {
+                    const dx = p.x - existingItem.initial.x;
+                    const dy = p.y - existingItem.initial.y;
+                    const dz = p.z - existingItem.initial.z;
+                    const distSq = dx * dx + dy * dy + dz * dz;
+
+                    if (distSq < neighborThresholdSq) {
+                        neighborImageIndices.add(existingItem.imageIndex);
+                    }
+                });
+
+                // Pick a random image that isn't a neighbor
+                let imageIndex;
+                let attempts = 0;
+                do {
+                    imageIndex = Math.floor(Math.random() * imageBank.length);
+                    attempts++;
+                } while (neighborImageIndices.has(imageIndex) && attempts < 50);
+
+                el.style.backgroundImage = `url('${imageBank[imageIndex]}')`;
+                dom.container.appendChild(el);
+                state.items.push({
+                    initial: p,
+                    current: { ...p },
+                    element: el,
+                    imageIndex: imageIndex
+                });
+            });
+
+            loop();
+
+            window.addEventListener('mousedown', onDragStart);
+            window.addEventListener('touchstart', onDragStart, { passive: false });
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchend', onDragEnd);
+        }
+
+        function onDragStart(e) {
+            const controlsPanel = document.getElementById('controls-panel');
+            const target = e.target;
+            if (controlsPanel && controlsPanel.contains(target)) {
+                return;
+            }
+
+            state.isDragging = true;
+            state.velocity = { x: 0, y: 0 };
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            state.lastMouse = { x: clientX, y: clientY };
+        }
+
+        function onDragMove(e) {
+            if (!state.isDragging) return;
+            if (e.cancelable) e.preventDefault();
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const deltaX = clientX - state.lastMouse.x;
+            const deltaY = clientY - state.lastMouse.y;
+
+            state.velocity.y = deltaX * config.dragSensitivity;
+            state.velocity.x = -deltaY * config.dragSensitivity;
+
+            state.rotation.y += state.velocity.y;
+            state.rotation.x += state.velocity.x;
+
+            state.lastMouse = { x: clientX, y: clientY };
+        }
+
+        function onDragEnd() {
+            state.isDragging = false;
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+
+            if (!state.isDragging) {
+                state.rotation.y += state.velocity.y;
+                state.rotation.x += state.velocity.x;
+                state.velocity.x *= config.inertiaDecay;
+                state.velocity.y *= config.inertiaDecay;
+
+                if (Math.abs(state.velocity.y) < 0.0001 && Math.abs(state.velocity.x) < 0.0001) {
+                    state.rotation.y += config.autoRotateSpeed;
+                }
+            }
+
+            state.items.forEach(item => {
+                const p = rotatePoint(item.initial, state.rotation.x, state.rotation.y);
+                item.current = p;
+                const opacity = (p.z + config.radius) / (config.radius * 2);
+                const zIndex = Math.floor(p.z + config.radius);
+                const brightness = 50 + (50 * (p.z + config.radius) / (config.radius * 2));
+
+                item.element.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scale(${0.5 + opacity / 2})`;
+                item.element.style.zIndex = zIndex;
+                item.element.style.filter = `brightness(${brightness}%)`;
+            });
+        }
+
+        function setupControls() {
+            const controlsPanel = document.getElementById('controls-panel');
+            const spacingSlider = document.getElementById('spacing-slider');
+            const spacingValue = document.getElementById('spacing-value');
+            const sizeSlider = document.getElementById('size-slider');
+            const sizeValue = document.getElementById('size-value');
+            const bgColor = document.getElementById('bg-color');
+
+            spacingSlider.addEventListener('input', (e) => {
+                const newRadius = parseInt(e.target.value);
+                config.radius = newRadius;
+                spacingValue.textContent = newRadius;
+                const points = getFibonacciSpherePoints(config.count, config.radius);
+                state.items.forEach((item, i) => {
+                    item.initial = points[i];
+                });
+            });
+
+            sizeSlider.addEventListener('input', (e) => {
+                const newSize = parseInt(e.target.value);
+                sizeValue.textContent = newSize;
+                state.items.forEach(item => {
+                    item.element.style.width = newSize + 'px';
+                    item.element.style.height = newSize + 'px';
+                    item.element.style.top = -(newSize / 2) + 'px';
+                    item.element.style.left = -(newSize / 2) + 'px';
+                });
+            });
+
+            bgColor.addEventListener('input', (e) => {
+                document.body.style.backgroundColor = e.target.value;
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'u' || e.key === 'U') {
+                    controlsPanel.classList.toggle('hidden');
+                }
+            });
+        }
+
+        init();
+        setupControls();
+    </script>
+</body>
+
+</html>
