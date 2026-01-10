@@ -49,8 +49,7 @@ body {
     /* Center the element (half size) */
     left: -70px;
     /* Center the element */
-    will-change: transform, opacity, filter;
-    /* transition: box-shadow 0.2s; REMOVED */
+    /* will-change: transform, opacity, filter; REMOVED to fix blurriness */
     opacity: 0.9;
 }
 
