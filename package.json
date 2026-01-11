@@ -1,7 +1,7 @@
 {
-  "name": "symbol-sphere",
-  "version": "1.0.0",
-  "description": "3D rotating sphere with interactive symbols",
+  "name": "symbol-sphere-v2",
+  "version": "2.0.0",
+  "description": "3D rotating sphere with interactive symbols - V2",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

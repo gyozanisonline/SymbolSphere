@@ -1,5 +1,5 @@
 const config = {
-    count: 200,
+    count: 120,
     radius: 250,
     autoRotateSpeed: 0.002,
     dragSensitivity: 0.005,
@@ -8,30 +8,30 @@ const config = {
 
 // Image bank - using SVG files from SVG BANK folder
 const imageBank = [
-    'SVG%20BANK/Artboard%203.svg',
-    'SVG%20BANK/Artboard%203%20copy.svg',
-    'SVG%20BANK/Artboard%203%20copy%202.svg',
-    'SVG%20BANK/Artboard%203%20copy%203.svg',
-    'SVG%20BANK/Artboard%203%20copy%204.svg',
-    'SVG%20BANK/Artboard%203%20copy%205.svg',
-    'SVG%20BANK/Artboard%203%20copy%206.svg',
-    'SVG%20BANK/Artboard%203%20copy%207.svg',
-    'SVG%20BANK/Artboard%203%20copy%208.svg',
-    'SVG%20BANK/Artboard%203%20copy%209.svg',
-    'SVG%20BANK/Artboard%203%20copy%2010.svg',
-    'SVG%20BANK/Artboard%203%20copy%2011.svg',
-    'SVG%20BANK/Artboard%203%20copy%2012.svg',
-    'SVG%20BANK/Artboard%203%20copy%2013.svg',
-    'SVG%20BANK/Artboard%203%20copy%2014.svg',
-    'SVG%20BANK/Artboard%203%20copy%2015.svg',
-    'SVG%20BANK/Artboard%203%20copy%2016.svg',
-    'SVG%20BANK/Artboard%203%20copy%2017.svg',
-    'SVG%20BANK/Artboard%203%20copy%2018.svg',
-    'SVG%20BANK/Artboard%203%20copy%2019.svg',
-    'SVG%20BANK/Artboard%203%20copy%2020.svg',
-    'SVG%20BANK/Artboard%203%20copy%2021.svg',
-    'SVG%20BANK/Artboard%203%20copy%2022.svg',
-    'SVG%20BANK/Artboard%203%20copy%2023.svg'
+    'SVG%20BANK/berry.svg',
+    'SVG%20BANK/bird.svg',
+    'SVG%20BANK/champange.svg',
+    'SVG%20BANK/classic%20flower.svg',
+    'SVG%20BANK/coffe.svg',
+    'SVG%20BANK/corn.svg',
+    'SVG%20BANK/dragonfly.svg',
+    'SVG%20BANK/eye%20flower.svg',
+    'SVG%20BANK/fish.svg',
+    'SVG%20BANK/floppy%20flower.svg',
+    'SVG%20BANK/frog.svg',
+    'SVG%20BANK/grass.svg',
+    'SVG%20BANK/heart.svg',
+    'SVG%20BANK/Lotus.svg',
+    'SVG%20BANK/magic%20cat.svg',
+    'SVG%20BANK/onion.svg',
+    'SVG%20BANK/rabbit.svg',
+    'SVG%20BANK/rose.svg',
+    'SVG%20BANK/shooting%20star.svg',
+    'SVG%20BANK/sir%20cat%201.svg',
+    'SVG%20BANK/sparkel%201.svg',
+    'SVG%20BANK/star%202.svg',
+    'SVG%20BANK/star%203.svg',
+    'SVG%20BANK/strawberry.svg'
 ];
 
 const state = {
@@ -105,14 +105,14 @@ function rotatePoint(p, rx, ry) {
 
 // --- Initialization ---
 
-function init() {
+function createSphereElements() {
+    // Clear existing
+    dom.container.innerHTML = '';
+    state.items = [];
+
     const points = getFibonacciSpherePoints(config.count, config.radius);
 
     // Average spacing calculation to determine neighbor threshold
-    // Surface area = 4 * pi * r^2
-    // Area per point = Surface area / count
-    // Approx spacing = sqrt(Area per point)
-    // We'll multiply by a factor (e.g. 1.5) to cover immediate diagonals
     const surfaceArea = 4 * Math.PI * config.radius * config.radius;
     const areaPerPoint = surfaceArea / config.count;
     const neighborThreshold = Math.sqrt(areaPerPoint) * 1.5;
@@ -151,9 +151,29 @@ function init() {
             initial: p,
             current: { ...p },
             element: el,
-            imageIndex: imageIndex // Store index for future checks
+            imageIndex: imageIndex
         });
     });
+
+    // Ensure styles are updated immediately
+    updateItemSizes();
+}
+
+function updateItemSizes() {
+    // Read current size from slider if available, otherwise default
+    const sizeSlider = document.getElementById('size-slider');
+    const newSize = sizeSlider ? parseInt(sizeSlider.value) : 140;
+
+    state.items.forEach(item => {
+        item.element.style.width = newSize + 'px';
+        item.element.style.height = newSize + 'px';
+        item.element.style.top = -(newSize / 2) + 'px';
+        item.element.style.left = -(newSize / 2) + 'px';
+    });
+}
+
+function init() {
+    createSphereElements();
 
     // Start Loop
     loop();
@@ -262,11 +282,23 @@ function loop() {
 
 function setupControls() {
     const controlsPanel = document.getElementById('controls-panel');
+    const densitySlider = document.getElementById('density-slider');
+    const densityValue = document.getElementById('density-value');
     const spacingSlider = document.getElementById('spacing-slider');
     const spacingValue = document.getElementById('spacing-value');
     const sizeSlider = document.getElementById('size-slider');
     const sizeValue = document.getElementById('size-value');
     const bgColor = document.getElementById('bg-color');
+
+    // Density slider
+    if (densitySlider) {
+        densitySlider.addEventListener('input', (e) => {
+            const newCount = parseInt(e.target.value);
+            config.count = newCount;
+            densityValue.textContent = newCount;
+            createSphereElements();
+        });
+    }
 
     // Spacing slider
     spacingSlider.addEventListener('input', (e) => {
@@ -276,8 +308,13 @@ function setupControls() {
 
         // Recalculate positions
         const points = getFibonacciSpherePoints(config.count, config.radius);
+
+        // Update positions of existing items
+        // If density changed recently, state.items is fresh.
         state.items.forEach((item, i) => {
-            item.initial = points[i];
+            if (points[i]) {
+                item.initial = points[i];
+            }
         });
     });
 
@@ -285,14 +322,7 @@ function setupControls() {
     sizeSlider.addEventListener('input', (e) => {
         const newSize = parseInt(e.target.value);
         sizeValue.textContent = newSize;
-
-        // Update all item sizes
-        state.items.forEach(item => {
-            item.element.style.width = newSize + 'px';
-            item.element.style.height = newSize + 'px';
-            item.element.style.top = -(newSize / 2) + 'px';
-            item.element.style.left = -(newSize / 2) + 'px';
-        });
+        updateItemSizes();
     });
 
     // Background color

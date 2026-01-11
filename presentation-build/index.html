@@ -158,6 +158,11 @@
 
     <div id="controls-panel">
         <div class="control-group">
+            <label for="density-slider">Density (Count)</label>
+            <input type="range" id="density-slider" min="20" max="200" value="120" step="10">
+            <span id="density-value">120</span>
+        </div>
+        <div class="control-group">
             <label for="spacing-slider">Spacing (Radius)</label>
             <input type="range" id="spacing-slider" min="150" max="500" value="250" step="10">
             <span id="spacing-value">250</span>
@@ -176,7 +181,7 @@
 
     <script>
         const config = {
-            count: 200,
+            count: 120,
             radius: 250,
             autoRotateSpeed: 0.002,
             dragSensitivity: 0.005,
@@ -185,30 +190,30 @@
 
         // Image bank - using SVG files from assets folder attached content
         const imageBank = [
-            'assets/Artboard%203.svg',
-            'assets/Artboard%203%20copy.svg',
-            'assets/Artboard%203%20copy%202.svg',
-            'assets/Artboard%203%20copy%203.svg',
-            'assets/Artboard%203%20copy%204.svg',
-            'assets/Artboard%203%20copy%205.svg',
-            'assets/Artboard%203%20copy%206.svg',
-            'assets/Artboard%203%20copy%207.svg',
-            'assets/Artboard%203%20copy%208.svg',
-            'assets/Artboard%203%20copy%209.svg',
-            'assets/Artboard%203%20copy%2010.svg',
-            'assets/Artboard%203%20copy%2011.svg',
-            'assets/Artboard%203%20copy%2012.svg',
-            'assets/Artboard%203%20copy%2013.svg',
-            'assets/Artboard%203%20copy%2014.svg',
-            'assets/Artboard%203%20copy%2015.svg',
-            'assets/Artboard%203%20copy%2016.svg',
-            'assets/Artboard%203%20copy%2017.svg',
-            'assets/Artboard%203%20copy%2018.svg',
-            'assets/Artboard%203%20copy%2019.svg',
-            'assets/Artboard%203%20copy%2020.svg',
-            'assets/Artboard%203%20copy%2021.svg',
-            'assets/Artboard%203%20copy%2022.svg',
-            'assets/Artboard%203%20copy%2023.svg'
+            'assets/berry.svg',
+            'assets/bird.svg',
+            'assets/champange.svg',
+            'assets/classic%20flower.svg',
+            'assets/coffe.svg',
+            'assets/corn.svg',
+            'assets/dragonfly.svg',
+            'assets/eye%20flower.svg',
+            'assets/fish.svg',
+            'assets/floppy%20flower.svg',
+            'assets/frog.svg',
+            'assets/grass.svg',
+            'assets/heart.svg',
+            'assets/Lotus.svg',
+            'assets/magic%20cat.svg',
+            'assets/onion.svg',
+            'assets/rabbit.svg',
+            'assets/rose.svg',
+            'assets/shooting%20star.svg',
+            'assets/sir%20cat%201.svg',
+            'assets/sparkel%201.svg',
+            'assets/star%202.svg',
+            'assets/star%203.svg',
+            'assets/strawberry.svg'
         ];
 
         const state = {
@@ -263,10 +268,12 @@
             return { x, y, z };
         }
 
-        function init() {
+        function createSphereElements() {
+            dom.container.innerHTML = '';
+            state.items = [];
+
             const points = getFibonacciSpherePoints(config.count, config.radius);
 
-            // Average spacing calculation to determine neighbor threshold
             const surfaceArea = 4 * Math.PI * config.radius * config.radius;
             const areaPerPoint = surfaceArea / config.count;
             const neighborThreshold = Math.sqrt(areaPerPoint) * 1.5;
@@ -276,7 +283,6 @@
                 const el = document.createElement('div');
                 el.className = 'item';
 
-                // Find neighbors among already created items
                 const neighborImageIndices = new Set();
                 state.items.forEach(existingItem => {
                     const dx = p.x - existingItem.initial.x;
@@ -289,7 +295,6 @@
                     }
                 });
 
-                // Pick a random image that isn't a neighbor
                 let imageIndex;
                 let attempts = 0;
                 do {
@@ -306,7 +311,22 @@
                     imageIndex: imageIndex
                 });
             });
+            updateItemSizes();
+        }
 
+        function updateItemSizes() {
+            const sizeSlider = document.getElementById('size-slider');
+            const newSize = sizeSlider ? parseInt(sizeSlider.value) : 140;
+            state.items.forEach(item => {
+                item.element.style.width = newSize + 'px';
+                item.element.style.height = newSize + 'px';
+                item.element.style.top = -(newSize / 2) + 'px';
+                item.element.style.left = -(newSize / 2) + 'px';
+            });
+        }
+
+        function init() {
+            createSphereElements();
             loop();
 
             window.addEventListener('mousedown', onDragStart);
@@ -385,11 +405,22 @@
 
         function setupControls() {
             const controlsPanel = document.getElementById('controls-panel');
+            const densitySlider = document.getElementById('density-slider');
+            const densityValue = document.getElementById('density-value');
             const spacingSlider = document.getElementById('spacing-slider');
             const spacingValue = document.getElementById('spacing-value');
             const sizeSlider = document.getElementById('size-slider');
             const sizeValue = document.getElementById('size-value');
             const bgColor = document.getElementById('bg-color');
+
+            if (densitySlider) {
+                densitySlider.addEventListener('input', (e) => {
+                    const newCount = parseInt(e.target.value);
+                    config.count = newCount;
+                    densityValue.textContent = newCount;
+                    createSphereElements();
+                });
+            }
 
             spacingSlider.addEventListener('input', (e) => {
                 const newRadius = parseInt(e.target.value);
@@ -397,19 +428,16 @@
                 spacingValue.textContent = newRadius;
                 const points = getFibonacciSpherePoints(config.count, config.radius);
                 state.items.forEach((item, i) => {
-                    item.initial = points[i];
+                    if (points[i]) {
+                        item.initial = points[i];
+                    }
                 });
             });
 
             sizeSlider.addEventListener('input', (e) => {
                 const newSize = parseInt(e.target.value);
                 sizeValue.textContent = newSize;
-                state.items.forEach(item => {
-                    item.element.style.width = newSize + 'px';
-                    item.element.style.height = newSize + 'px';
-                    item.element.style.top = -(newSize / 2) + 'px';
-                    item.element.style.left = -(newSize / 2) + 'px';
-                });
+                updateItemSizes();
             });
 
             bgColor.addEventListener('input', (e) => {
