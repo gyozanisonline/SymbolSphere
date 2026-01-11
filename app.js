@@ -1,5 +1,5 @@
 const config = {
-    count: 120,
+    count: 50,
     radius: 250,
     autoRotateSpeed: 0.002,
     dragSensitivity: 0.005,
