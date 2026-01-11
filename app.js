@@ -260,20 +260,25 @@ function loop() {
 
         // Apply visual updates based on Depth (z)
         // z varies from -radius to +radius
-        // We map this to scale (0.5 to 1.5) and opacity (0.3 to 1) 
-        // to create depth illusion without actual CSS perpective on each child if we don't want it,
-        // BUT here we use translate3d so we get real perspective from the container.
-        // We will just enhance it with scale/opacity.
 
-        // const scale = (p.z + config.radius * 2) / (config.radius * 2.5); // Crude depth map
-        const opacity = (p.z + config.radius) / (config.radius * 2);
+        // Normalize depth from 0 (back) to 1 (front)
+        const normalizedDepth = (p.z + config.radius) / (config.radius * 2);
+
+        // Opacity Fade: 0.2 at far back, 1.0 at front
+        const fadeOpacity = 0.2 + (normalizedDepth * 0.8);
         const zIndex = Math.floor(p.z + config.radius);
 
-        const brightness = 50 + (50 * (p.z + config.radius) / (config.radius * 2));
+        // Brightness: Darker at back (optional, user asked for color fade which usually implies opacity/mixing with bg)
+        // We'll keep brightness subtle or rely on opacity.
+        // Let's rely mainly on Opacity as requested ("fade in color").
+        // But keeping a bit of brightness refines it.
+        const brightness = 70 + (30 * normalizedDepth);
 
-        item.element.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scale(${0.5 + opacity / 2})`;
+        item.element.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scale(${0.5 + normalizedDepth / 2})`;
         item.element.style.zIndex = zIndex;
-        // item.element.style.opacity = 0.2 + (opacity * 0.8);
+
+        // Apply the fade
+        item.element.style.opacity = fadeOpacity;
         item.element.style.filter = `brightness(${brightness}%)`;
     });
 }

@@ -425,12 +425,15 @@
             state.items.forEach(item => {
                 const p = rotatePoint(item.initial, state.rotation.x, state.rotation.y);
                 item.current = p;
-                const opacity = (p.z + config.radius) / (config.radius * 2);
-                const zIndex = Math.floor(p.z + config.radius);
-                const brightness = 50 + (50 * (p.z + config.radius) / (config.radius * 2));
 
-                item.element.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scale(${0.5 + opacity / 2})`;
+                const normalizedDepth = (p.z + config.radius) / (config.radius * 2);
+                const fadeOpacity = 0.2 + (normalizedDepth * 0.8);
+                const zIndex = Math.floor(p.z + config.radius);
+                const brightness = 70 + (30 * normalizedDepth);
+
+                item.element.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) scale(${0.5 + normalizedDepth / 2})`;
                 item.element.style.zIndex = zIndex;
+                item.element.style.opacity = fadeOpacity;
                 item.element.style.filter = `brightness(${brightness}%)`;
             });
         }
