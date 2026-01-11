@@ -269,46 +269,78 @@
         }
 
         function createSphereElements() {
+            // Clear existing
             dom.container.innerHTML = '';
             state.items = [];
 
             const points = getFibonacciSpherePoints(config.count, config.radius);
+            const totalSymbols = imageBank.length;
 
-            const surfaceArea = 4 * Math.PI * config.radius * config.radius;
-            const areaPerPoint = surfaceArea / config.count;
-            const neighborThreshold = Math.sqrt(areaPerPoint) * 1.5;
-            const neighborThresholdSq = neighborThreshold * neighborThreshold;
+            // 1. Create a "Shuffle Bag" / Pool of symbols logic
+            const baseCount = Math.floor(config.count / totalSymbols);
+            const remainder = config.count % totalSymbols;
 
-            points.forEach((p, i) => {
+            const availableCounts = new Array(totalSymbols).fill(baseCount);
+            for (let i = 0; i < remainder; i++) availableCounts[i]++;
+
+            // 2. Assign symbols to points greedily
+            points.forEach((p, index) => {
                 const el = document.createElement('div');
                 el.className = 'item';
 
-                const neighborImageIndices = new Set();
-                state.items.forEach(existingItem => {
-                    const dx = p.x - existingItem.initial.x;
-                    const dy = p.y - existingItem.initial.y;
-                    const dz = p.z - existingItem.initial.z;
-                    const distSq = dx * dx + dy * dy + dz * dz;
+                let bestSymbol = -1;
+                let maxMinDistance = -1;
 
-                    if (distSq < neighborThresholdSq) {
-                        neighborImageIndices.add(existingItem.imageIndex);
+                // Try every symbol type that still has count remaining
+                // Randomize order to prevent stripes in tie-breaking
+                const candidates = [];
+                for (let s = 0; s < totalSymbols; s++) {
+                    if (availableCounts[s] > 0) candidates.push(s);
+                }
+                for (let i = candidates.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+                }
+
+                for (let s of candidates) {
+                    let minDist = Infinity;
+
+                    // Check against all currently placed items
+                    for (let existing of state.items) {
+                        if (existing.imageIndex === s) {
+                            const dx = p.x - existing.initial.x;
+                            const dy = p.y - existing.initial.y;
+                            const dz = p.z - existing.initial.z;
+                            const dSq = dx * dx + dy * dy + dz * dz;
+                            if (dSq < minDist) minDist = dSq;
+                        }
                     }
-                });
 
-                let imageIndex;
-                let attempts = 0;
-                do {
-                    imageIndex = Math.floor(Math.random() * imageBank.length);
-                    attempts++;
-                } while (neighborImageIndices.has(imageIndex) && attempts < 50);
+                    if (minDist === Infinity) {
+                        bestSymbol = s;
+                        break;
+                    }
 
-                el.style.backgroundImage = `url('${imageBank[imageIndex]}')`;
+                    if (minDist > maxMinDistance) {
+                        maxMinDistance = minDist;
+                        bestSymbol = s;
+                    }
+                }
+
+                if (bestSymbol === -1) {
+                    bestSymbol = Math.floor(Math.random() * totalSymbols);
+                }
+
+                availableCounts[bestSymbol]--;
+
+                el.style.backgroundImage = `url('${imageBank[bestSymbol]}')`;
                 dom.container.appendChild(el);
+
                 state.items.push({
                     initial: p,
                     current: { ...p },
                     element: el,
-                    imageIndex: imageIndex
+                    imageIndex: bestSymbol
                 });
             });
             updateItemSizes();
