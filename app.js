@@ -146,37 +146,15 @@ function createSphereElements() {
 
     const points = getFibonacciSpherePoints(config.count, config.radius);
 
-    // Average spacing calculation to determine neighbor threshold
-    const surfaceArea = 4 * Math.PI * config.radius * config.radius;
-    const areaPerPoint = surfaceArea / config.count;
-    const neighborThreshold = Math.sqrt(areaPerPoint) * 1.5;
-    const neighborThresholdSq = neighborThreshold * neighborThreshold;
+    // Shuffle indices so each image is used once before any repeats
+    const shuffled = [...imageBank.keys()].sort(() => Math.random() - 0.5);
+    const getImageIndex = (n) => shuffled[n % shuffled.length];
 
     points.forEach((p, i) => {
         const el = document.createElement('div');
         el.className = 'item';
 
-        // Find neighbors among already created items
-        const neighborImageIndices = new Set();
-        state.items.forEach(existingItem => {
-            const dx = p.x - existingItem.initial.x;
-            const dy = p.y - existingItem.initial.y;
-            const dz = p.z - existingItem.initial.z;
-            const distSq = dx * dx + dy * dy + dz * dz;
-
-            if (distSq < neighborThresholdSq) {
-                neighborImageIndices.add(existingItem.imageIndex);
-            }
-        });
-
-        // Pick a random image that isn't a neighbor
-        let imageIndex;
-        let attempts = 0;
-        do {
-            imageIndex = Math.floor(Math.random() * imageBank.length);
-            attempts++;
-        } while (neighborImageIndices.has(imageIndex) && attempts < 50);
-
+        const imageIndex = getImageIndex(i);
         el.style.backgroundImage = `url('${imageBank[imageIndex]}')`;
 
         dom.container.appendChild(el);
